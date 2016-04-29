@@ -1,0 +1,29 @@
+texturePool.js
+// Statistics:
+// - textures: {{textures.length}}
+// - textureMaps: {{maps.length}}
+
+module.exports = {
+
+	maps: [{{#each maps}}
+		{
+			url        : "{{#if data-uri}}{{data-uri}}{{else}}{{url}}{{/if}}",
+			width      : {{width}},
+			height     : {{height}},
+			repeatX    : {{repeat-x}},
+			repeatY    : {{repeat-y}}
+		}{{#unless is-last-item}}, {{/unless}}{{/each}}
+	],
+
+	textures: { {{#each textures}}
+		'{{id}}' : {
+			mapIndex   : {{map-index}},
+			x          : {{x}},
+			y          : {{y}},
+			width      : {{real-width}},
+			height     : {{real-height}},
+			opaque     : {{opaque}},
+			trim       : { left : {{trim.left}}, right : {{trim.right}}, top : {{trim.top}}, bottom : {{trim.bottom}} }
+		}{{#unless is-last-item}}, {{/unless}}{{/each}}
+	}
+};
