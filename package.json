@@ -1,7 +1,7 @@
 {
-  "name": "habbojs-swfpreprocessor",
+  "name": "Assets-Preprocessor",
   "version": "1.0.0",
-  "description": "A swf preprocessor to create spritesheets which can be used in the habbojs-client",
+  "description": "A swf preprocessor to create spritesheets which can be used in the MMOCC-JS Game-Client",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
