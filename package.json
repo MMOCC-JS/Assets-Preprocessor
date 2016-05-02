@@ -9,7 +9,6 @@
   "author": "Jos Piek",
   "license": "MIT",
   "devDependencies": {
-    "async-waterfall": "^0.1.5",
     "glob": "^7.0.3",
     "jbinary": "^2.1.3",
     "jdataview": "^2.5.0",
