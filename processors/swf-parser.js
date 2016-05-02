@@ -10,6 +10,7 @@ module.exports = function(sourceFolder, sourceFile, targetFolder, parseType, fin
         finishCB('Invalid parse type passed by!'); return;
     }
 
+    console.log('Parse file: ', sourceFile);
     jBinary.load(sourceFile, swfTypeSet, function(err, binary) {
         if (err) {
             finishCB(err); return;

@@ -16,7 +16,7 @@ function parseLayerByString(layer) {
 }
 
 function fixObjectArray(obj) {
-    if (typeof obj === 'array') {
+    if (Array.isArray(obj)) {
         return obj;
     }
     else {
@@ -32,11 +32,13 @@ function tryParseXmlLogic(jsonObj, result) {
     var objData = jsonObj.objectData;
 
     if (utils.isset(objData, 'model.dimensions')) {
-        result.dimensions = objeobjDatactData.model.dimensions;
+        result.dimensions = objData.model.dimensions;
     }
 
-    if (utils.isset(objData, 'model.directions')) {
+    if (utils.isset(objData, 'model.directions.direction')) {
         var objDirections = fixObjectArray(objData.model.directions.direction);
+
+        //console.log(objDirections);
 
         for (var i in objDirections) {
             var direction = objDirections[i].id / 90 * 2;
@@ -55,7 +57,7 @@ function tryParseXmlAssets(jsonObj, result) {
 
     var objAssets = fixObjectArray(jsonObj.assets.asset);
     for (var i in objAssets) {
-        var asset = objAssets[j],
+        var asset = objAssets[i],
             assetName = asset.name;
         delete asset.name;
         asset.properties = {};
@@ -163,7 +165,8 @@ function tryParseXmlVisualization(jsonObj, result) {
                     }
 
                     if (Object.keys(layers).length != 0) {
-                        directions[j].layers = layers;
+                        directions[objDirection.id] = {};
+                        directions[objDirection.id].layers = layers;
                     }
                 }
             }
@@ -180,8 +183,10 @@ function tryParseXmlVisualization(jsonObj, result) {
             for (var j in objColors) {
                 var objColor = objColors[j];
 
+                //console.log(objColor);
+
                 if (objColor.colorLayer) {
-                    var objLayers = fixObjectArray(objDirection.colorLayer),
+                    var objLayers = fixObjectArray(objColor.colorLayer),
                         layers = {};
 
                     for (var k in objLayers) {
@@ -193,7 +198,8 @@ function tryParseXmlVisualization(jsonObj, result) {
                     }
 
                     if (Object.keys(layers).length != 0) {
-                        colors[j].layers = layers;
+                        colors[objColor.id] = {};
+                        colors[objColor.id].layers = layers;
                     }
                 }
             }
@@ -203,6 +209,8 @@ function tryParseXmlVisualization(jsonObj, result) {
             }
         }
     }
+
+    return true;
 }
 
 module.exports = function(targetFolder, swfName, tagNames, binaryTags, finishCB) {
@@ -235,6 +243,8 @@ module.exports = function(targetFolder, swfName, tagNames, binaryTags, finishCB)
             tagData = binaryTag.data;
             binaryName = tagNames[tagData.symbolTag];
 
+        console.log(binaryName);
+
         var jsonObj = x2js.xml2js(tagData.data);
 
         if (tryParseXmlIndex(jsonObj, result)) {
@@ -249,7 +259,7 @@ module.exports = function(targetFolder, swfName, tagNames, binaryTags, finishCB)
         else if (tryParseXmlVisualization(jsonObj, result)) {
             console.log('Parsed XML: Visualization');
         }
-        else {
+        else if (!jsonObj.manifest) {
             finishCB('Parsed unknown XML'); return;
         }
     }

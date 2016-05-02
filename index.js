@@ -28,8 +28,8 @@ glob(sourceFolder + '/*.swf', function(err, files) {
     var doSwfParser = function(fileIndex) {
         var sourceFile = files[fileIndex];
 
-        swfParser(sourceFolder, sourceFile, targetFile, parseType, function(err, swfName) {
-            if (err) throw err;
+        swfParser(sourceFolder, sourceFile, targetFolder, parseType, function(err, swfName) {
+            if (err) throw new Error(err);
 
             textureMaps.push({
                 folder: swfName,
