@@ -56,13 +56,16 @@ function tryParseXmlAssets(jsonObj, result) {
     }
 
     var objAssets = fixObjectArray(jsonObj.assets.asset);
+
+    //console.log(objAssets);
+
     for (var i in objAssets) {
         var asset = objAssets[i],
             assetName = asset.name;
         delete asset.name;
         asset.properties = {};
 
-        if (assetName === undefined) {
+        if (assetName === undefined || assetName.indexOf('_') == -1 || assetName.indexOf('.') >= 0) {
             continue;
         }
 
@@ -115,11 +118,17 @@ function tryParseXmlVisualization(jsonObj, result) {
         return false;
     }
 
-    if (!utils.isset(jsonObj, 'visualizationData.graphics.visualization')) {
+    var objVisualizations = null;
+    if (utils.isset(jsonObj, 'visualizationData.graphics.visualization')) {
+        objVisualizations = jsonObj.visualizationData.graphics.visualization;
+    }
+    else if (utils.isset(jsonObj, 'visualizationData.visualization')) {
+        objVisualizations = jsonObj.visualizationData.visualization;
+    }
+    else {
         return false;
     }
 
-    var objVisualizations = jsonObj.visualizationData.graphics.visualization;
     for (var i in objVisualizations) {
         var objVisualization = objVisualizations[i];
 
@@ -208,7 +217,59 @@ function tryParseXmlVisualization(jsonObj, result) {
                 visualization.colors = colors;
             }
         }
+
+        if (utils.isset(objVisualization, 'animations.animation')) {
+            var objAnimations = fixObjectArray(objVisualization.animations.animation),
+                animations = {};
+
+            for (var j in objAnimations) {
+                var objAnimation = objAnimations[j];
+
+                if (objAnimation.animationLayer) {
+                    var objLayers = fixObjectArray(objAnimation.animationLayer),
+                        layers = {};
+
+                    for (var k in objLayers) {
+                        var layer = objLayers[k];
+                            layerId = layer.id;
+                        delete layer.id;
+
+                        var objFrameSequence = fixObjectArray(objLayers[k].frameSequence)[0]; // TODO: add support for mutiple frameSequences!
+                        if (objFrameSequence == undefined) {
+                            continue;
+                        }
+
+                        layer.frameSequence = [];
+
+                        if (objFrameSequence.frame) {
+                            var objFrames = fixObjectArray(objFrameSequence.frame);
+
+                            for (var l in objFrames) {
+                                layer.frameSequence.push(objFrames[l].id);
+                            }
+                        }
+
+                        if (layer.frameSequence.length > 0) {
+                            layers[layerId] = layer;
+                        }
+                    }
+
+                    if (Object.keys(layers).length != 0) {
+                        animations[objAnimation.id] = {};
+                        animations[objAnimation.id].layers = layers;
+                    }
+                }
+            }
+
+            if (Object.keys(animations).length != 0) {
+                visualization.animations = animations;
+            }
+        }
+
+        result.graphics[objVisualization.size] = visualization;
     }
+
+
 
     return true;
 }

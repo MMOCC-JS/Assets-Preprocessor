@@ -15,7 +15,8 @@ process.on("unhandledRejection", function(err) {
 
 var sourceFolder = process.argv[2],
     targetFolder = process.argv[3],
-    parseType = process.argv[4];
+    parseType = process.argv[4],
+    onlyTextures = process.argv[5];
 
 texturerConfig['folders']['source'] = sourceFolder;
 texturerConfig['folders']['target'] = targetFolder;
@@ -45,11 +46,16 @@ glob(sourceFolder + '/*.swf', function(err, files) {
         });
     };
 
-    var generateSpritesheet = function(mapIndex) {
+    var doGenerateTextures = function(mapIndex) {
         texturerConfig['texture-map-tasks'][0] = textureMaps[mapIndex];
 
         new Texturer().generate(texturerConfig, function (err) {
-            if (err) return callback(err);
+            if (err) if (err.message.indexOf('too large art. Split images into 2 or more folders!') == -1) { // TODO: Fix this error (it's rarely)
+                throw err;
+            } 
+            else {
+                doGenerateTextures(mapIndex + 1); return;
+            }
 
             delete require.cache[require.resolve(targetFolder + '/texturePool.js')];
             var texturePool = require(targetFolder + '/texturePool.js');
@@ -101,7 +107,7 @@ glob(sourceFolder + '/*.swf', function(err, files) {
                 fs.writeFileSync(targetFolder + '/' + path.basename(map.url, '.png') + '_spritesheet.json', JSON.stringify(spritesheet));
 
                 if (mapIndex + 1 < textureMaps.length) {
-                    generateSpritesheet(mapIndex + 1);
+                    doGenerateTextures(mapIndex + 1);
                 }
                 else {
                     console.log('------ DONE ------');
@@ -110,5 +116,19 @@ glob(sourceFolder + '/*.swf', function(err, files) {
         }, null);
     };
 
-    doSwfParser(0);
+    if (onlyTextures) {
+        for (var i in files) {
+            var swfName = path.basename(files[i], '.swf');
+
+            textureMaps.push({
+                folder: swfName,
+                'texture-map-file':   swfName + '.png'
+            });
+        }
+
+        doGenerateTextures(0);
+    }
+    else {
+        doSwfParser(0);
+    }
 });
