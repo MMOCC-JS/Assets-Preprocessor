@@ -28,22 +28,34 @@ glob(sourceFolder + '/*.swf', function(err, files) {
 
     var doSwfParser = function(fileIndex) {
         var sourceFile = files[fileIndex];
+            sourceName = path.basename(sourceFile, '.swf');
 
-        swfParser(sourceFolder, sourceFile, targetFolder, parseType, function(err, swfName) {
-            if (err) throw new Error(err);
 
-            textureMaps.push({
-                folder: swfName,
-                'texture-map-file':   swfName + '.png'
-            });
-
+        if (sourceName == 'hh_human_fx' || sourceName == 'hh_pets') { // TODO: Make this nicer
             if (fileIndex + 1 < files.length) {
                 doSwfParser(fileIndex + 1);
             }
             else {
                 doGenerateTextures(0);
             }
-        });
+        }
+        else {
+            swfParser(sourceFolder, sourceFile, targetFolder, parseType, function(err, swfName) {
+                if (err) throw new Error(err);
+
+                textureMaps.push({
+                    folder: swfName,
+                    'texture-map-file':   swfName + '.png'
+                });
+
+                if (fileIndex + 1 < files.length) {
+                    doSwfParser(fileIndex + 1);
+                }
+                else {
+                    doGenerateTextures(0);
+                }
+            });
+        }
     };
 
     var doGenerateTextures = function(mapIndex) {
